@@ -7,7 +7,8 @@
 #include "tcp_transport.h"
 
 int sockfd;
-int probe_transport_init() {
+int probe_transport_init()
+{
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
         printf("Failed to create socket!\n");
@@ -32,7 +33,8 @@ int probe_transport_init() {
     return 0;
 }
 
-int probe_transport_send(probe_req_t *req, void *data, uint64_t len) {
+int probe_transport_send(probe_req_t *req, void *data, uint64_t len)
+{
     write(req->conn, &len, sizeof(len));
     write(req->conn, data, len);
     shutdown(req->conn, SHUT_RDWR);
@@ -41,7 +43,8 @@ int probe_transport_send(probe_req_t *req, void *data, uint64_t len) {
     return 0;
 }
 
-probe_req_t *probe_transport_recv(void **data, uint64_t *len) {
+probe_req_t *probe_transport_recv(void **data, uint64_t *len)
+{
     struct sockaddr_in cli;
     socklen_t slen;
     int conn;
