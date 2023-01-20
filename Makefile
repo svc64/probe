@@ -1,11 +1,11 @@
 SYSROOT ?= $(shell xcodebuild -sdk macosx -version Path 2> /dev/null)
-LDFLAGS := -L$(SYSROOT)/usr/lib -lc
-CFLAGS := -g -I$(SRC_DIR) -03 -isysroot $(SYSROOT)
 ARCH := arm64
 OUTPUT_DIR = output
 BUILD_DIR = build
 EXECUTABLE = $(OUTPUT_DIR)/probe
 SRC_DIR = src
+CFLAGS := -g -I$(SRC_DIR) -O3 -isysroot $(SYSROOT)
+LDFLAGS := -L$(SYSROOT)/usr/lib -lc
 SOURCES = $(shell find $(SRC_DIR) -type f ! -name "*.h" ! -name ".*")
 OBJS = $(SOURCES:%=$(BUILD_DIR)/%.o)
 $(BUILD_DIR)/%.o: %
