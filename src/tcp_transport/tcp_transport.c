@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include "requests.h"
 #include "transport.h"
 #include "tcp_transport.h"
 
@@ -33,50 +34,36 @@ int probe_transport_init()
     return 0;
 }
 
-int probe_transport_send(probe_req_t *req, void *data, uint64_t len)
+int probe_transport_send(probe_ctx_t *ctx, ProbeReply *reply)
 {
-    write(req->conn, &len, sizeof(len));
-    write(req->conn, data, len);
-    shutdown(req->conn, SHUT_RDWR);
-    close(req->conn);
-    free(req);
+    write(ctx->conn, reply, sizeof(ProbeReply));
+    shutdown(ctx->conn, SHUT_RDWR);
+    close(ctx->conn);
+    free(ctx);
     return 0;
 }
 
-probe_req_t *probe_transport_recv(void **data, uint64_t *len)
+probe_ctx_t *probe_transport_recv(ProbeRequest *request)
 {
     struct sockaddr_in cli;
     socklen_t slen;
     int conn;
-    void *request = NULL;
-    uint64_t request_size = 0;
     uint64_t size_read = 0;
     for (;;) {
         conn = accept(sockfd, (struct sockaddr *)&cli, &slen);
-        size_read = read(conn, &request_size, sizeof(request_size));
-        if (!request_size || size_read != sizeof(request_size)) {
-            break;
-        }
-        request = malloc(request_size);
-        if (!request) {
-            break;
-        }
-        size_read = read(conn, request, request_size);
-        if (size_read != request_size) {
-            free(request);
+        size_read = read(conn, request, sizeof(ProbeRequest));
+        if (size_read != sizeof(ProbeRequest)) {
             break;
         }
         shutdown(conn, SHUT_RD);
-        *data = request;
-        *len = request_size;
-        probe_req_t *req = malloc(sizeof(probe_req_t));
-        if (!req) {
+        probe_ctx_t *ctx = malloc(sizeof(probe_ctx_t));
+        if (!ctx) {
             abort();
         }
-        req->conn = conn;
-        return req;
+        ctx->conn = conn;
+        return ctx;
     }
     shutdown(conn, SHUT_RDWR);
     close(conn);
-    return probe_transport_recv(data, len);
+    return probe_transport_recv(request);
 }
