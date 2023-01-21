@@ -9,6 +9,7 @@ void handle_request(ProbeRequest *request, ProbeReply *reply)
         case OP_NOP:
             reply->retval = 0x1337133713371337;
             reply->status = 0;
+            break;
         default:
             reply->status = 1;
             break;
