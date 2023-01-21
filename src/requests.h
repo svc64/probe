@@ -1,6 +1,10 @@
 #include <stdint.h>
 #pragma once
 
+typedef enum {
+    OP_NOP = 0,
+} ProbeOp;
+
 typedef struct __attribute__((packed)) {
     uint64_t opcode;
     uint64_t args[8];

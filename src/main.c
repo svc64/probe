@@ -6,9 +6,11 @@
 void handle_request(ProbeRequest *request, ProbeReply *reply)
 {
     switch (request->opcode) {
-        default:
+        case OP_NOP:
             reply->retval = 0x1337133713371337;
             reply->status = 0;
+        default:
+            reply->status = 1;
             break;
     }
     reply->opcode = request->opcode;
