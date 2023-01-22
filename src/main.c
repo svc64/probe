@@ -2,19 +2,31 @@
 #include <stdlib.h>
 #include <strings.h>
 #include "transport.h"
+#include "alloc.h"
 
 void handle_request(ProbeRequest *request, ProbeReply *reply)
 {
+    reply->opcode = request->opcode;
     switch (request->opcode) {
+        case OP_ALLOC:
+            reply->retval = (uint64_t)probe_alloc(request->args[0]);
+            if (!reply->retval) {
+                reply->status = STATUS_ERR;
+                break;
+            }
+            break;
+        case OP_FREE:
+            if (!probe_free((void *)request->args[0])) {
+                reply->status = STATUS_ERR;
+            }
+            break;
         case OP_NOP:
             reply->retval = 0x1337133713371337;
-            reply->status = 0;
             break;
         default:
-            reply->status = 1;
+            reply->status = STATUS_UNK_OP;
             break;
     }
-    reply->opcode = request->opcode;
 }
 
 int main()

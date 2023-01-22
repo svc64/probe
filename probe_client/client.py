@@ -8,6 +8,8 @@ class ProbeClient:
     REPLY_STRUCT = "<3Q"
 
     OP_NOP = 0
+    OP_ALLOC = 1
+    OP_FREE = 2
 
     def __init__(self, transport):
         self.transport = transport
@@ -25,3 +27,9 @@ class ProbeClient:
 
     def nop(self):
         return self.request(self.OP_NOP)
+
+    def alloc(self, size):
+        return self.request(self.OP_ALLOC, size)
+
+    def free(self, addr):
+        return self.request(self.OP_FREE, addr)
