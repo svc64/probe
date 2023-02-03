@@ -40,10 +40,10 @@ int main()
     ProbeReply reply;
     uint64_t len;
     for (;;) {
-        probe_ctx_t *ctx = probe_transport_recv(&request);
+        probe_ctx_t *ctx = probe_transport_recv(&request, sizeof(request));
         bzero(&reply, sizeof(reply));
         handle_request(&request, &reply);
-        probe_transport_send(ctx, &reply);
+        probe_transport_send(ctx, &reply, sizeof(reply));
     }
     return 0;
 }

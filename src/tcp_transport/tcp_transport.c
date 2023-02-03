@@ -34,16 +34,16 @@ int probe_transport_init()
     return 0;
 }
 
-int probe_transport_send(probe_ctx_t *ctx, ProbeReply *reply)
+int probe_transport_send(probe_ctx_t *ctx, void *data, size_t len)
 {
-    write(ctx->conn, reply, sizeof(ProbeReply));
+    write(ctx->conn, data, len);
     shutdown(ctx->conn, SHUT_RDWR);
     close(ctx->conn);
     free(ctx);
     return 0;
 }
 
-probe_ctx_t *probe_transport_recv(ProbeRequest *request)
+probe_ctx_t *probe_transport_recv(void *data, size_t len)
 {
     struct sockaddr_in cli;
     socklen_t slen;
@@ -51,8 +51,8 @@ probe_ctx_t *probe_transport_recv(ProbeRequest *request)
     uint64_t size_read = 0;
     for (;;) {
         conn = accept(sockfd, (struct sockaddr *)&cli, &slen);
-        size_read = read(conn, request, sizeof(ProbeRequest));
-        if (size_read != sizeof(ProbeRequest)) {
+        size_read = read(conn, data, len);
+        if (size_read != len) {
             break;
         }
         shutdown(conn, SHUT_RD);
@@ -65,5 +65,5 @@ probe_ctx_t *probe_transport_recv(ProbeRequest *request)
     }
     shutdown(conn, SHUT_RDWR);
     close(conn);
-    return probe_transport_recv(request);
+    return probe_transport_recv(data, len);
 }
