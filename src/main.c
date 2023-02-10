@@ -3,6 +3,7 @@
 #include <strings.h>
 #include "transport.h"
 #include "alloc.h"
+#include "mem.h"
 
 void handle_request(ProbeRequest *request, ProbeReply *reply)
 {
@@ -20,6 +21,9 @@ void handle_request(ProbeRequest *request, ProbeReply *reply)
                 reply->status = STATUS_ERR;
             }
             break;
+        case OP_READ:
+            reply->status = probe_read64(&reply->retval, (void *)request->args[0]);
+            break;
         case OP_NOP:
             reply->retval = 0x1337133713371337;
             break;
@@ -36,6 +40,7 @@ int main()
     if (ret) {
         abort();
     }
+    init_mem_handler();
     ProbeRequest request;
     ProbeReply reply;
     uint64_t len;

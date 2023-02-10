@@ -5,12 +5,14 @@ typedef enum {
     OP_NOP = 0,
     OP_ALLOC = 1,
     OP_FREE = 2,
+    OP_READ = 3,
 } ProbeOp;
 
 typedef enum {
     STATUS_SUCCESS = 0,
-    STATUS_UNK_OP = 1,
-    STATUS_ERR = 2,
+    STATUS_UNK_OP = 1, // Unknown operation
+    STATUS_ERR = 2, // An error
+    STATUS_FAULT = 3, // System fault (invalid address, etc)
 } ProbeStatus;
 
 typedef struct __attribute__((packed)) {
