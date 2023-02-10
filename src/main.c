@@ -24,6 +24,9 @@ void handle_request(ProbeRequest *request, ProbeReply *reply)
         case OP_RDPTR:
             reply->status = probe_rdptr(&reply->retval, (void *)request->args[0]);
             break;
+        case OP_WRPTR:
+            reply->status = probe_wrptr((void *)request->args[0], (uintptr_t)request->args[1]);
+            break;
         case OP_NOP:
             reply->retval = 0x1337133713371337;
             break;

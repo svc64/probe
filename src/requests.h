@@ -6,6 +6,7 @@ typedef enum {
     OP_ALLOC = 1,
     OP_FREE = 2,
     OP_RDPTR = 3,
+    OP_WRPTR = 4,
 } ProbeOp;
 
 typedef enum {

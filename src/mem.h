@@ -6,3 +6,4 @@
 
 void init_mem_handler();
 int probe_rdptr(void *dest, void *addr);
+int probe_wrptr(void *addr, uintptr_t value);
