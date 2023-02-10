@@ -10,7 +10,7 @@ class ProbeClient:
     OP_NOP = 0
     OP_ALLOC = 1
     OP_FREE = 2
-    OP_READ = 3
+    OP_RDPTR = 3
 
     def __init__(self, transport):
         self.transport = transport
@@ -35,5 +35,5 @@ class ProbeClient:
     def free(self, addr):
         return self.request(self.OP_FREE, addr)
 
-    def read(self, addr):
-        return self.request(self.OP_READ, addr)
+    def rdptr(self, addr):
+        return self.request(self.OP_RDPTR, addr)

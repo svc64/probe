@@ -47,7 +47,7 @@ void init_mem_handler()
     sigaction(SIGSEGV, &sa, &osa);
 }
 
-int probe_read64(void *dest, void *addr)
+int probe_rdptr(void *dest, void *addr)
 {
     pthread_t thread;
     void *args[2];
