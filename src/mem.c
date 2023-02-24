@@ -17,6 +17,11 @@ int set_probe_thread()
     return err;
 }
 
+/* The client can perform memory r/w operations that might result in a fault. To deal with this,
+when we do such operations, we do them on a new thread. The new thread's name is set
+to MEM_THREAD_NAME. When a fault occurs, the signal handler will run *in that thread*.
+Then, we check the thread's name to see if it's MEM_THREAD_NAME. If it is, we just use pthread_exit
+to make the thread exit (and return STATUS_FAULT). */
 void sighandler(int signo, siginfo_t *si, void *data)
 {
     char thread_name[0xFF];
@@ -96,7 +101,7 @@ int probe_cmd_wrptr(plist_t request, plist_t *reply)
     uint64_t addr;
     plist_get_uint_val(addr_num, &addr);
     plist_t value_num;
-    if (!plist_array_get_item_type(request, 0, PLIST_INT, &value_num)) {
+    if (!plist_array_get_item_type(request, 1, PLIST_INT, &value_num)) {
         return STATUS_INVALID_ARG;
     }
     uint64_t value;

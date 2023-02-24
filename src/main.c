@@ -45,11 +45,11 @@ out:
 
 int main()
 {
-    printf("Hello world!\n");
     int ret = probe_transport_init();
     if (ret) {
         abort();
     }
+    // Initialize the signal handler for memory r/w operations
     init_mem_handler();
     void* request_data;
     uint32_t request_len;
