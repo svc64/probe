@@ -1,4 +1,4 @@
-#include "mini_libplist/libplist.h"
+#include "plist.h"
 
 #define PLIST_KEY_STATUS "status"
 #define PLIST_KEY_PAYLOAD "payload"

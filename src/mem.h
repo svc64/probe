@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <pthread.h>
-#include "mini_libplist/libplist.h"
+#include "plist.h"
 
 #define MEM_THREAD_NAME "svc.probe_thread"
 
