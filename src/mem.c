@@ -123,7 +123,7 @@ int probe_cmd_rdptr(plist_t request, plist_t *reply)
     return status;
 }
 
-void *safe_mem_read_thread(void **args)
+void *safe_memcpy_thread(void **args)
 {
     int err = set_probe_thread();
     if (err) {
@@ -136,14 +136,14 @@ void *safe_mem_read_thread(void **args)
     return (void *)STATUS_SUCCESS;
 }
 
-int probe_mem_read(void *dest, uintptr_t addr, size_t size)
+int probe_safe_memcpy(void *dest, void *addr, size_t size)
 {
     pthread_t thread;
     void *args[3];
     args[0] = dest;
-    args[1] = (void *)addr;
+    args[1] = addr;
     args[2] = (void *)size;
-    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_mem_read_thread, args);
+    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_memcpy_thread, args);
     if (err) {
         return STATUS_ERR;
     }
@@ -167,7 +167,7 @@ int probe_cmd_mem_read(plist_t request, plist_t *reply)
     uint64_t size;
     plist_get_uint_val(size_num, &size);
     void *data = malloc((size_t)size);
-    int status = probe_mem_read(data, (uintptr_t)addr, (size_t)size);
+    int status = probe_safe_memcpy(data, (void *)addr, (size_t)size);
     if (status) {
         free(data);
         return status;
