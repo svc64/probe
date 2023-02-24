@@ -1,6 +1,6 @@
 #include <stddef.h>
 #include <stdbool.h>
-#include "mini_libplist/libplist.h"
+#include "plist.h"
 
 void *probe_alloc(size_t size);
 bool probe_free(void *addr);

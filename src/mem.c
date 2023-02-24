@@ -42,7 +42,7 @@ void init_mem_handler()
     sigaction(SIGSEGV, &sa, &osa);
 }
 
-void *safe_read_thread(void **args)
+void *safe_rdptr_thread(void **args)
 {
     int err = set_probe_thread();
     if (err) {
@@ -58,7 +58,7 @@ int probe_rdptr(uintptr_t *dest, uintptr_t addr)
     void *args[2];
     args[0] = (void *)dest;
     args[1] = (void *)addr;
-    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_read_thread, args);
+    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_rdptr_thread, args);
     if (err) {
         return STATUS_ERR;
     }
@@ -67,7 +67,7 @@ int probe_rdptr(uintptr_t *dest, uintptr_t addr)
     return (int)retval;
 }
 
-void *safe_write_thread(void **args)
+void *safe_wrptr_thread(void **args)
 {
     int err = set_probe_thread();
     if (err) {
@@ -83,7 +83,7 @@ int probe_wrptr(void *addr, uintptr_t value)
     void *args[2];
     args[0] = addr;
     args[1] = (void *)value;
-    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_write_thread, args);
+    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_wrptr_thread, args);
     if (err) {
         return STATUS_ERR;
     }
@@ -121,4 +121,58 @@ int probe_cmd_rdptr(plist_t request, plist_t *reply)
     int status = probe_rdptr(&value, (uintptr_t)addr);
     *reply = plist_new_uint((uint64_t)value);
     return status;
+}
+
+void *safe_mem_read_thread(void **args)
+{
+    int err = set_probe_thread();
+    if (err) {
+        return (void *)STATUS_ERR;
+    }
+    void *dest = args[0];
+    void *addr = args[1];
+    size_t size = (size_t)(args[2]);
+    memcpy(dest, addr, size);
+    return (void *)STATUS_SUCCESS;
+}
+
+int probe_mem_read(void *dest, uintptr_t addr, size_t size)
+{
+    pthread_t thread;
+    void *args[3];
+    args[0] = dest;
+    args[1] = (void *)addr;
+    args[2] = (void *)size;
+    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_mem_read_thread, args);
+    if (err) {
+        return STATUS_ERR;
+    }
+    uintptr_t retval;
+    pthread_join(thread, (void **)&retval);
+    return (int)retval;
+}
+
+int probe_cmd_mem_read(plist_t request, plist_t *reply)
+{
+    plist_t addr_num;
+    if (!plist_array_get_item_type(request, 0, PLIST_INT, &addr_num)) {
+        return STATUS_INVALID_ARG;
+    }
+    uint64_t addr;
+    plist_get_uint_val(addr_num, &addr);
+    plist_t size_num;
+    if (!plist_array_get_item_type(request, 1, PLIST_INT, &size_num)) {
+        return STATUS_INVALID_ARG;
+    }
+    uint64_t size;
+    plist_get_uint_val(size_num, &size);
+    void *data = malloc((size_t)size);
+    int status = probe_mem_read(data, (uintptr_t)addr, (size_t)size);
+    if (status) {
+        free(data);
+        return status;
+    }
+    *reply = plist_new_data((const char *)data, (uint64_t)size);
+    free(data);
+    return STATUS_SUCCESS;
 }
