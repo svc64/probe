@@ -1,9 +1,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <pthread.h>
+#include "mini_libplist/libplist.h"
 
 #define MEM_THREAD_NAME "svc.probe_thread"
 
 void init_mem_handler();
-int probe_rdptr(void *dest, void *addr);
-int probe_wrptr(void *addr, uintptr_t value);
+int probe_cmd_wrptr(plist_t request, plist_t *reply);
+int probe_cmd_rdptr(plist_t request, plist_t *reply);

@@ -34,8 +34,9 @@ int probe_transport_init()
     return 0;
 }
 
-int probe_transport_send(probe_ctx_t *ctx, void *data, size_t len)
+int probe_transport_send(probe_ctx_t *ctx, void *data, uint32_t len)
 {
+    write(ctx->conn, &len, sizeof(len));
     write(ctx->conn, data, len);
     shutdown(ctx->conn, SHUT_RDWR);
     close(ctx->conn);
@@ -43,27 +44,41 @@ int probe_transport_send(probe_ctx_t *ctx, void *data, size_t len)
     return 0;
 }
 
-probe_ctx_t *probe_transport_recv(void *data, size_t len)
+probe_ctx_t *probe_transport_recv(void **data, uint32_t *out_len)
 {
     struct sockaddr_in cli;
     socklen_t slen;
     int conn;
+    uint32_t len;
     uint64_t size_read = 0;
     for (;;) {
         conn = accept(sockfd, (struct sockaddr *)&cli, &slen);
-        size_read = read(conn, data, len);
+        size_read = read(conn, &len, sizeof(len));
+        if (size_read != sizeof(len)) {
+            break;
+        }
+        *out_len = len;
+        *data = malloc(len);
+        if (!*data) {
+            break;
+        }
+        size_read = read(conn, *data, len);
         if (size_read != len) {
             break;
         }
         shutdown(conn, SHUT_RD);
         probe_ctx_t *ctx = malloc(sizeof(probe_ctx_t));
         if (!ctx) {
-            abort();
+            break;
         }
         ctx->conn = conn;
         return ctx;
     }
+    if (*data) {
+        free(*data);
+        *data = NULL;
+    }
     shutdown(conn, SHUT_RDWR);
     close(conn);
-    return probe_transport_recv(data, len);
+    return probe_transport_recv(data, out_len);
 }

@@ -14,15 +14,5 @@ typedef enum {
     STATUS_UNK_OP = 1, // Unknown operation
     STATUS_ERR = 2, // An error
     STATUS_FAULT = 3, // System fault (invalid address, etc)
+    STATUS_INVALID_ARG = 4, // Invalid argument
 } ProbeStatus;
-
-typedef struct __attribute__((packed)) {
-    uint64_t opcode;
-    uint64_t args[8];
-} ProbeRequest;
-
-typedef struct __attribute__((packed)) {
-    uint64_t opcode;
-    uint64_t status;
-    uint64_t retval;
-} ProbeReply;
