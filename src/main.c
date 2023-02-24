@@ -33,6 +33,9 @@ void handle_request(plist_t request, plist_t reply)
         case OP_MEM_READ:
             status = probe_cmd_mem_read(request_payload, &reply_payload);
             break;
+        case OP_MEM_WRITE:
+            status = probe_cmd_mem_write(request_payload, &reply_payload);
+            break;
         case OP_NOP:
             status = STATUS_SUCCESS;
             break;

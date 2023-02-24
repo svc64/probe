@@ -14,6 +14,7 @@ class ProbeClient:
     OP_RDPTR = 3
     OP_WRPTR = 4
     OP_MEM_READ = 5
+    OP_MEM_WRITE = 6
 
     def __init__(self, transport):
         self.transport = transport
@@ -46,3 +47,6 @@ class ProbeClient:
 
     def mem_read(self, addr, size):
         return self.request(self.OP_MEM_READ, addr, size)
+
+    def mem_write(self, addr, data):
+        return self.request(self.OP_MEM_WRITE, addr, data)

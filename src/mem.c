@@ -176,3 +176,24 @@ int probe_cmd_mem_read(plist_t request, plist_t *reply)
     free(data);
     return STATUS_SUCCESS;
 }
+
+int probe_cmd_mem_write(plist_t request, plist_t *reply)
+{
+    plist_t addr_num;
+    if (!plist_array_get_item_type(request, 0, PLIST_INT, &addr_num)) {
+        return STATUS_INVALID_ARG;
+    }
+    uint64_t addr;
+    plist_get_uint_val(addr_num, &addr);
+    plist_t data_p;
+    if (!plist_array_get_item_type(request, 1, PLIST_DATA, &data_p)) {
+        return STATUS_INVALID_ARG;
+    }
+    uint64_t data_len;
+    void *data = plist_get_data_ptr(data_p, &data_len);
+    int status = probe_safe_memcpy((void *)addr, data, (size_t)data_len);
+    if (status) {
+        return status;
+    }
+    return STATUS_SUCCESS;
+}
