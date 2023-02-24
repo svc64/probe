@@ -1,12 +1,13 @@
-import struct
+import plistlib
 
-class ProbeReplyException(Exception):
+PROBE_KEY_STATUS = "status"
+PROBE_KEY_PAYLOAD = "payload"
+PROBE_KEY_OP = "op"
+
+class ProbeException(Exception):
     pass
 
 class ProbeClient:
-    REQUEST_STRUCT = "<9Q"
-    REPLY_STRUCT = "<3Q"
-
     OP_NOP = 0
     OP_ALLOC = 1
     OP_FREE = 2
@@ -17,15 +18,15 @@ class ProbeClient:
         self.transport = transport
 
     def request(self, opcode, *args):
-        args = list(args) + [0] * (8 - len(args))
-        request_data = struct.pack(self.REQUEST_STRUCT, opcode, *args)
+        args = list(args)
+        request = {PROBE_KEY_OP: opcode, PROBE_KEY_PAYLOAD: args}
+        request_data = plistlib.dumps(request, fmt=plistlib.FMT_BINARY)
         reply_data = self.transport.request(request_data)
-        rop, status, retval = struct.unpack(self.REPLY_STRUCT, reply_data)
-        if rop != opcode:
-            raise ProbeReplyException("Incorrect opcode in reply!")
-        if status != 0:
-            raise ProbeReplyException("reply status != 0")
-        return retval
+        reply = plistlib.loads(reply_data)
+        if reply[PROBE_KEY_STATUS] != 0:
+            raise ProbeException("reply status != 0")
+        if PROBE_KEY_PAYLOAD in reply:
+            return reply[PROBE_KEY_PAYLOAD]
 
     def nop(self):
         return self.request(self.OP_NOP)
