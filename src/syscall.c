@@ -38,23 +38,19 @@ int probe_safe_syscall(int num, uint64_t *syscall_args, uintptr_t *retval)
 
 int probe_cmd_syscall(plist_t request, plist_t *reply)
 {
-    plist_t num_p;
-    if (!plist_array_get_item_type(request, 0, PLIST_INT, &num_p)) {
+    uint64_t num;
+    if (!plist_array_get_item_type(request, 0, &num)) {
         return STATUS_INVALID_ARG;
     }
-    uint64_t num;
-    plist_get_uint_val(num_p, &num);
     plist_t args_p;
     uint64_t args[8];
     if (!plist_array_get_item_type(request, 1, PLIST_ARRAY, &args_p)) {
         return STATUS_INVALID_ARG;
     }
-    plist_t arg_p;
     for (int i = 0; i < plist_array_get_size(args_p); i++) {
-        if (!plist_array_get_item_type(args_p, i, PLIST_INT, &arg_p)) {
+        if (!plist_array_get_int(args_p, i, &args[i])) {
             return STATUS_INVALID_ARG;
         }
-        plist_get_uint_val(arg_p, &args[i]);
     }
     uintptr_t retval;
     int status = probe_safe_syscall(num, args, &retval);

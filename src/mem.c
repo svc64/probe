@@ -60,18 +60,14 @@ int probe_wrptr(void *addr, uintptr_t value)
 
 int probe_cmd_wrptr(plist_t request, plist_t *reply)
 {
-    plist_t addr_num;
-    if (!plist_array_get_item_type(request, 0, PLIST_INT, &addr_num)) {
-        return STATUS_INVALID_ARG;
-    }
     uint64_t addr;
-    plist_get_uint_val(addr_num, &addr);
-    plist_t value_num;
-    if (!plist_array_get_item_type(request, 1, PLIST_INT, &value_num)) {
+    if (!plist_array_get_int(request, 0, &addr)) {
         return STATUS_INVALID_ARG;
     }
     uint64_t value;
-    plist_get_uint_val(value_num, &value);
+    if (!plist_array_get_int(request, 1, &value)) {
+        return STATUS_INVALID_ARG;
+    }
     return probe_wrptr((void *)addr, (uintptr_t)value);
 }
 
@@ -120,18 +116,14 @@ int probe_safe_memcpy(void *dest, const void *addr, size_t size)
 
 int probe_cmd_mem_read(plist_t request, plist_t *reply)
 {
-    plist_t addr_num;
-    if (!plist_array_get_item_type(request, 0, PLIST_INT, &addr_num)) {
-        return STATUS_INVALID_ARG;
-    }
     uint64_t addr;
-    plist_get_uint_val(addr_num, &addr);
-    plist_t size_num;
-    if (!plist_array_get_item_type(request, 1, PLIST_INT, &size_num)) {
+    if (!plist_array_get_int(request, 0, &addr)) {
         return STATUS_INVALID_ARG;
     }
     uint64_t size;
-    plist_get_uint_val(size_num, &size);
+    if (!plist_array_get_int(request, 1, &size)) {
+        return STATUS_INVALID_ARG;
+    }
     void *data = malloc((size_t)size);
     int status = probe_safe_memcpy(data, (void *)addr, (size_t)size);
     if (status) {
@@ -145,12 +137,10 @@ int probe_cmd_mem_read(plist_t request, plist_t *reply)
 
 int probe_cmd_mem_write(plist_t request, plist_t *reply)
 {
-    plist_t addr_num;
-    if (!plist_array_get_item_type(request, 0, PLIST_INT, &addr_num)) {
+    uint64_t addr;
+    if (!plist_array_get_int(request, 0, &addr)) {
         return STATUS_INVALID_ARG;
     }
-    uint64_t addr;
-    plist_get_uint_val(addr_num, &addr);
     plist_t data_p;
     if (!plist_array_get_item_type(request, 1, PLIST_DATA, &data_p)) {
         return STATUS_INVALID_ARG;

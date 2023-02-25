@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "requests.h"
+#include "plist.h"
 
 struct ProbeAlloc {
     void *addr;
@@ -55,15 +56,10 @@ bool probe_free(void *addr)
 
 int probe_cmd_alloc(plist_t request, plist_t *reply)
 {
-    plist_t size_num = plist_array_get_item(request, 0);
-    if (!size_num) {
-        return STATUS_INVALID_ARG;
-    }
-    if (plist_get_node_type(size_num) != PLIST_INT) {
-        return STATUS_INVALID_ARG;
-    }
     uint64_t size;
-    plist_get_uint_val(size_num, &size);
+    if (!plist_array_get_int(request, 0, &size)) {
+        return STATUS_INVALID_ARG;
+    }
     void *addr = probe_alloc((size_t)size);
     *reply = plist_new_uint((uint64_t)addr);
     return STATUS_SUCCESS;
