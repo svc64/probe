@@ -39,7 +39,7 @@ int probe_safe_syscall(int num, uint64_t *syscall_args, uintptr_t *retval)
 int probe_cmd_syscall(plist_t request, plist_t *reply)
 {
     uint64_t num;
-    if (!plist_array_get_item_type(request, 0, &num)) {
+    if (!plist_array_get_int(request, 0, &num)) {
         return STATUS_INVALID_ARG;
     }
     plist_t args_p;

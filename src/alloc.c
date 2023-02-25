@@ -67,15 +67,10 @@ int probe_cmd_alloc(plist_t request, plist_t *reply)
 
 int probe_cmd_free(plist_t request, plist_t *reply)
 {
-    plist_t addr_num = plist_array_get_item(request, 0);
-    if (!addr_num) {
-        return STATUS_INVALID_ARG;
-    }
-    if (plist_get_node_type(addr_num) != PLIST_INT) {
-        return STATUS_INVALID_ARG;
-    }
     uint64_t addr;
-    plist_get_uint_val(addr_num, &addr);
+    if (!plist_array_get_int(request, 0, &addr)) {
+        return STATUS_INVALID_ARG;
+    }
     bool res = probe_free((void *)addr);
     if (!res) {
         return STATUS_FAULT;
