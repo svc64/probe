@@ -1,46 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <pthread.h>
 #include <signal.h>
+#include "signals.h"
 #include "mem.h"
 #include "requests.h"
 #include "plist.h"
-
-int set_probe_thread()
-{
-    int err;
-#ifdef __APPLE__
-    err = pthread_setname_np(MEM_THREAD_NAME);
-#else
-    err = pthread_setname_np(pthread_self(), MEM_THREAD_NAME);
-#endif
-    return err;
-}
-
-/* The client can perform memory r/w operations that might result in a fault. To deal with this,
-when we do such operations, we do them on a new thread. The new thread's name is set
-to MEM_THREAD_NAME. When a fault occurs, the signal handler will run *in that thread*.
-Then, we check the thread's name to see if it's MEM_THREAD_NAME. If it is, we just use pthread_exit
-to make the thread exit (and return STATUS_FAULT). */
-void sighandler(int signo, siginfo_t *si, void *data)
-{
-    char thread_name[0xFF];
-    bzero(thread_name, sizeof(thread_name));
-    pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
-    if (!strcmp(thread_name, MEM_THREAD_NAME)) {
-        pthread_exit((void *)STATUS_FAULT);
-    }
-    printf("unhandled signal!\n");
-    abort();
-}
-
-void init_mem_handler()
-{
-    struct sigaction sa, osa;
-    sa.sa_flags = SA_ONSTACK | SA_RESTART | SA_SIGINFO;
-    sa.sa_sigaction = sighandler;
-    sigaction(SIGSEGV, &sa, &osa);
-}
 
 void *safe_rdptr_thread(void **args)
 {
@@ -136,12 +102,12 @@ void *safe_memcpy_thread(void **args)
     return (void *)STATUS_SUCCESS;
 }
 
-int probe_safe_memcpy(void *dest, void *addr, size_t size)
+int probe_safe_memcpy(void *dest, const void *addr, size_t size)
 {
     pthread_t thread;
     void *args[3];
     args[0] = dest;
-    args[1] = addr;
+    args[1] = (void *)addr;
     args[2] = (void *)size;
     int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_memcpy_thread, args);
     if (err) {
@@ -190,7 +156,7 @@ int probe_cmd_mem_write(plist_t request, plist_t *reply)
         return STATUS_INVALID_ARG;
     }
     uint64_t data_len;
-    void *data = plist_get_data_ptr(data_p, &data_len);
+    const void *data = plist_get_data_ptr(data_p, &data_len);
     int status = probe_safe_memcpy((void *)addr, data, (size_t)data_len);
     if (status) {
         return status;

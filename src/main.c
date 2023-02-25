@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <signal.h>
 #include "transport.h"
 #include "alloc.h"
 #include "mem.h"
 #include "probe_plist.h"
+#include "syscall.h"
+#include "signals.h"
 
 void handle_request(plist_t request, plist_t reply)
 {
@@ -36,6 +39,9 @@ void handle_request(plist_t request, plist_t reply)
         case OP_MEM_WRITE:
             status = probe_cmd_mem_write(request_payload, &reply_payload);
             break;
+        case OP_SYSCALL:
+            status = probe_cmd_syscall(request_payload, &reply_payload);
+            break;
         case OP_NOP:
             status = STATUS_SUCCESS;
             break;
@@ -56,7 +62,7 @@ int main()
         abort();
     }
     // Initialize the signal handler for memory r/w operations
-    init_mem_handler();
+    init_sig_handler();
     void* request_data;
     uint32_t request_len;
     plist_t request;
