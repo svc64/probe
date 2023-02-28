@@ -5,9 +5,20 @@
 #include "transport.h"
 #include "alloc.h"
 #include "mem.h"
-#include "probe_plist.h"
+#include "plist.h"
 #include "syscall.h"
 #include "signals.h"
+#include "cmd.h"
+
+ProbeCommand commands[] = {
+    {probe_cmd_alloc, OP_ALLOC},
+    {probe_cmd_free, OP_FREE},
+    {probe_cmd_rdptr, OP_RDPTR},
+    {probe_cmd_wrptr, OP_WRPTR},
+    {probe_cmd_mem_read, OP_MEM_READ},
+    {probe_cmd_mem_write, OP_MEM_WRITE},
+    {probe_cmd_syscall, OP_SYSCALL},
+};
 
 void handle_request(plist_t request, plist_t reply)
 {
@@ -20,33 +31,16 @@ void handle_request(plist_t request, plist_t reply)
     plist_get_int_val(op, &opcode);
     plist_t request_payload = plist_dict_get_item(request, PLIST_KEY_PAYLOAD);
     plist_t reply_payload = NULL;
-    switch (opcode) {
-        case OP_ALLOC:
-            status = probe_cmd_alloc(request_payload, &reply_payload);
-            break;
-        case OP_FREE:
-            status = probe_cmd_free(request_payload, &reply_payload);
-            break;
-        case OP_RDPTR:
-            status = probe_cmd_rdptr(request_payload, &reply_payload);
-            break;
-        case OP_WRPTR:
-            status = probe_cmd_wrptr(request_payload, &reply_payload);
-            break;
-        case OP_MEM_READ:
-            status = probe_cmd_mem_read(request_payload, &reply_payload);
-            break;
-        case OP_MEM_WRITE:
-            status = probe_cmd_mem_write(request_payload, &reply_payload);
-            break;
-        case OP_SYSCALL:
-            status = probe_cmd_syscall(request_payload, &reply_payload);
-            break;
-        case OP_NOP:
-            status = STATUS_SUCCESS;
-            break;
-        default:
-            break;
+    if (opcode == OP_NOP) {
+        status = STATUS_SUCCESS;
+    }
+    else {
+        for (int i = 0; i < sizeof(commands) / sizeof(ProbeCommand); i++) {
+            if (commands[i].opcode == opcode) {
+                commands[i].handler(request, reply);
+                break;
+            }
+        }
     }
 out:
     plist_dict_set_item(reply, PLIST_KEY_STATUS, plist_new_int(status));
