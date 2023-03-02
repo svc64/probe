@@ -73,12 +73,10 @@ int probe_cmd_wrptr(plist_t request, plist_t *reply)
 
 int probe_cmd_rdptr(plist_t request, plist_t *reply)
 {
-    plist_t addr_num;
-    if (!plist_array_get_item_type(request, 0, PLIST_INT, &addr_num)) {
+    uint64_t addr;
+    if (!plist_array_get_int(request, 0, &addr)) {
         return STATUS_INVALID_ARG;
     }
-    uint64_t addr;
-    plist_get_uint_val(addr_num, &addr);
     uintptr_t value;
     int status = probe_rdptr(&value, (uintptr_t)addr);
     *reply = plist_new_uint((uint64_t)value);
@@ -142,7 +140,7 @@ int probe_cmd_mem_write(plist_t request, plist_t *reply)
         return STATUS_INVALID_ARG;
     }
     plist_t data_p;
-    if (!plist_array_get_item_type(request, 1, PLIST_DATA, &data_p)) {
+    if (!plist_array_get_item_with_type(request, 1, PLIST_DATA, &data_p)) {
         return STATUS_INVALID_ARG;
     }
     uint64_t data_len;

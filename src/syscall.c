@@ -44,7 +44,7 @@ int probe_cmd_syscall(plist_t request, plist_t *reply)
     }
     plist_t args_p;
     uint64_t args[8];
-    if (!plist_array_get_item_type(request, 1, PLIST_ARRAY, &args_p)) {
+    if (!plist_array_get_item_with_type(request, 1, PLIST_ARRAY, &args_p)) {
         return STATUS_INVALID_ARG;
     }
     for (int i = 0; i < plist_array_get_size(args_p); i++) {

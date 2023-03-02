@@ -1,6 +1,14 @@
 #include "plist.h"
 
-bool plist_array_get_item_type(plist_t node, uint32_t index, plist_type type, plist_t *item_out)
+int plist_array_get_item_type(plist_t node, uint32_t index) {
+    plist_t item = plist_array_get_item(node, index);
+    if (!item) {
+        return PLIST_NONE;
+    }
+    return plist_get_node_type(item);
+}
+
+bool plist_array_get_item_with_type(plist_t node, uint32_t index, plist_type type, plist_t *item_out)
 {
     plist_t item = plist_array_get_item(node, index);
     if (!item) {
@@ -16,7 +24,7 @@ bool plist_array_get_item_type(plist_t node, uint32_t index, plist_type type, pl
 bool plist_array_get_int(plist_t node, uint32_t index, uint64_t *result)
 {
     plist_t item;
-    if (!plist_array_get_item_type(node, index, PLIST_INT, &item)) {
+    if (!plist_array_get_item_with_type(node, index, PLIST_INT, &item)) {
         return false;
     }
     plist_get_uint_val(item, result);

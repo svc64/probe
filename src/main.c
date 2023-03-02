@@ -9,6 +9,7 @@
 #include "syscall.h"
 #include "signals.h"
 #include "cmd.h"
+#include "arbcall.h"
 
 ProbeCommand commands[] = {
     {probe_cmd_alloc, OP_ALLOC},
@@ -18,6 +19,7 @@ ProbeCommand commands[] = {
     {probe_cmd_mem_read, OP_MEM_READ},
     {probe_cmd_mem_write, OP_MEM_WRITE},
     {probe_cmd_syscall, OP_SYSCALL},
+    {probe_cmd_fcall, OP_FCALL},
 };
 
 void handle_request(plist_t request, plist_t reply)
@@ -37,7 +39,7 @@ void handle_request(plist_t request, plist_t reply)
     else {
         for (int i = 0; i < sizeof(commands) / sizeof(ProbeCommand); i++) {
             if (commands[i].opcode == opcode) {
-                commands[i].handler(request, reply);
+                status = commands[i].handler(request_payload, &reply_payload);
                 break;
             }
         }
