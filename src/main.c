@@ -59,7 +59,7 @@ int main()
     }
     // Initialize the signal handler for memory r/w operations
     init_sig_handler();
-    void* request_data;
+    void* request_data = NULL;
     uint32_t request_len;
     plist_t request;
     plist_t reply;
