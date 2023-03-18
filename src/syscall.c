@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <signal.h>
+#include <strings.h>
 #include "signals.h"
 #include "requests.h"
 #include "syscall.h"
+#include "arbcall.h"
 
 extern uintptr_t syscall(int, ...);
 
@@ -43,17 +45,20 @@ int probe_cmd_syscall(plist_t request, plist_t *reply)
         return STATUS_INVALID_ARG;
     }
     plist_t args_p;
-    uint64_t args[8];
     if (!plist_array_get_item_with_type(request, 1, PLIST_ARRAY, &args_p)) {
         return STATUS_INVALID_ARG;
     }
-    for (int i = 0; i < plist_array_get_size(args_p); i++) {
-        if (!plist_array_get_int(args_p, i, &args[i])) {
-            return STATUS_INVALID_ARG;
-        }
+    uint32_t args_count = plist_array_get_size(args_p);
+    if (args_count > 8) {
+        return STATUS_INVALID_ARG;
+    }
+    uintptr_t args[8];
+    bzero(args, 8);
+    if (!extract_args(args_p, args, args_count)) {
+        return STATUS_INVALID_ARG;
     }
     uintptr_t retval;
-    int status = probe_safe_syscall(num, args, &retval);
+    int status = probe_safe_syscall(num, (uint64_t *)args, &retval);
     if (!status) {
         *reply = plist_new_uint((uint64_t)retval);
     }
