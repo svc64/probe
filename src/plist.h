@@ -8,3 +8,4 @@
 int plist_array_get_item_type(plist_t node, uint32_t index);
 bool plist_array_get_item_with_type(plist_t node, uint32_t index, plist_type type, plist_t *item_out);
 bool plist_array_get_int(plist_t node, uint32_t index, uint64_t *result);
+const char *plist_array_get_string(plist_t node, uint32_t index);

@@ -20,6 +20,7 @@ ProbeCommand commands[] = {
     {probe_cmd_mem_write, OP_MEM_WRITE},
     {probe_cmd_syscall, OP_SYSCALL},
     {probe_cmd_fcall, OP_FCALL},
+    {probe_cmd_dlsym, OP_DLSYM}
 };
 
 void handle_request(plist_t request, plist_t reply)

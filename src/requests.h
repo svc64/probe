@@ -10,7 +10,8 @@ typedef enum {
     OP_MEM_READ = 5,
     OP_MEM_WRITE = 6,
     OP_SYSCALL = 7,
-    OP_FCALL = 8
+    OP_FCALL = 8,
+    OP_DLSYM = 9
 } ProbeOp;
 
 typedef enum {

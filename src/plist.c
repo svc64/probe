@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "plist.h"
 
 int plist_array_get_item_type(plist_t node, uint32_t index) {
@@ -29,4 +30,13 @@ bool plist_array_get_int(plist_t node, uint32_t index, uint64_t *result)
     }
     plist_get_uint_val(item, result);
     return true;
+}
+
+const char *plist_array_get_string(plist_t node, uint32_t index)
+{
+    plist_t item;
+    if (!plist_array_get_item_with_type(node, index, PLIST_STRING, &item)) {
+        return NULL;
+    }
+    return plist_get_string_ptr(item, NULL);
 }

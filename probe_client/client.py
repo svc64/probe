@@ -17,6 +17,7 @@ class ProbeClient:
     OP_MEM_WRITE = 6
     OP_SYSCALL = 7
     OP_FCALL = 8
+    OP_DLSYM = 9
 
     def __init__(self, transport):
         self.transport = transport
@@ -60,3 +61,6 @@ class ProbeClient:
     def fcall(self, addr, *args):
         args = list(args)
         return self.request(self.OP_FCALL, addr, args)
+
+    def dlsym(self, sym):
+        return self.request(self.OP_DLSYM, sym)
