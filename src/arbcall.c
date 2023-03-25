@@ -22,7 +22,7 @@ bool extract_args(plist_t args_p, uintptr_t *args, uint32_t count)
             args[i] = (uintptr_t)plist_get_string_ptr(plist_array_get_item(args_p, i), NULL);
         }
         else {
-            return false;    
+            return false;
         }
     }
     return true;
@@ -43,7 +43,7 @@ int probe_cmd_fcall(plist_t request, plist_t *reply)
         return STATUS_INVALID_ARG;
     }
     uintptr_t args[8];
-    bzero(args, 8);
+    bzero(args, sizeof(args));
     if (!extract_args(args_p, args, args_count)) {
         return STATUS_INVALID_ARG;
     }
