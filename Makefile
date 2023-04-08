@@ -7,13 +7,13 @@ CFLAGS := -g -I$(SRC_DIR) -O3
 LDFLAGS := -lc
 OS := $(shell uname -s)
 ifeq ($(OS),Darwin)
-TARGET ?= macosx
-ifeq ($(TARGET),iphoneos)
-SYSROOT ?= $(shell xcodebuild -sdk iphoneos -version Path 2> /dev/null)
+SDK ?= macosx
+ifeq ($(SDK),iphoneos)
 CFLAGS += -miphoneos-version-min=7.0
-else ifeq ($(TARGET),macosx)
-SYSROOT ?= $(shell xcodebuild -sdk macosx -version Path 2> /dev/null)
+else ifeq ($(SDK),watchos)
+CFLAGS += -mwatchos-version-min=1.0
 endif
+SYSROOT ?= $(shell xcodebuild -sdk $(SDK) -version Path 2> /dev/null)
 CFLAGS += -isysroot $(SYSROOT)
 LDFLAGS += -L$(SYSROOT)/usr/lib
 endif
