@@ -7,7 +7,7 @@
 #include "syscall.h"
 #include "arbcall.h"
 
-extern uintptr_t syscall(int, ...);
+extern int syscall(int, ...);
 
 void *safe_syscall_thread(void **args)
 {
@@ -18,7 +18,7 @@ void *safe_syscall_thread(void **args)
     uintptr_t *retval = (uintptr_t *)(args[0]);
     int num = *(int *)(&args[1]);
     void **syscall_args = (void **)(args[2]);
-    *retval = syscall(num, syscall_args[0], syscall_args[1], syscall_args[2], syscall_args[3], syscall_args[4], syscall_args[5], syscall_args[6], syscall_args[7]);
+    *retval = (uintptr_t)syscall(num, syscall_args[0], syscall_args[1], syscall_args[2], syscall_args[3], syscall_args[4], syscall_args[5], syscall_args[6], syscall_args[7]);
     return (void *)STATUS_SUCCESS;
 }
 

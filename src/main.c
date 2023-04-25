@@ -10,6 +10,7 @@
 #include "signals.h"
 #include "cmd.h"
 #include "arbcall.h"
+#include "ios_usb.h"
 
 ProbeCommand commands[] = {
     {probe_cmd_alloc, OP_ALLOC},
@@ -54,7 +55,18 @@ out:
 
 int main()
 {
-    int ret = probe_transport_init();
+    int ret;
+    #ifdef IOS
+    printf("Initializing USB...\n");
+    ret = init_usb();
+    if (ret) {
+        printf("Failed to init USB for iOS! ret=%d\n", ret);
+        abort();
+    }
+    printf("USB init done.\n");
+    #endif
+
+    ret = probe_transport_init();
     if (ret) {
         abort();
     }
