@@ -29,7 +29,7 @@ class ProbeClient:
         reply_data = self.transport.request(request_data)
         reply = plistlib.loads(reply_data)
         if reply[PROBE_KEY_STATUS] != 0:
-            raise ProbeException("reply status != 0")
+            raise ProbeException(f"reply status != 0 ({reply[PROBE_KEY_STATUS]})")
         if PROBE_KEY_PAYLOAD in reply:
             return reply[PROBE_KEY_PAYLOAD]
 
