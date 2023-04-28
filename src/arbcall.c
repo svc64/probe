@@ -30,19 +30,23 @@ bool extract_args(plist_t args_p, uintptr_t *args, uint32_t count)
     return true;
 }
 
-void *fcall_thread(void **thread_args) {
+struct fcall_args {
+    uint64_t addr;
+    uintptr_t args[8];
+    uint64_t retval;
+};
+
+void *fcall_thread(struct fcall_args *f_args) {
     set_probe_thread();
-    uintptr_t addr = (uintptr_t)thread_args[0];
-    uintptr_t *args = (uintptr_t *)thread_args[1];
-    uintptr_t *retval = (uintptr_t *)thread_args[2];
-    *retval = ((uintptr_t (*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t))addr)(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+    f_args->retval = ((uintptr_t (*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t))f_args->addr)(f_args->args[0], f_args->args[1], f_args->args[2], f_args->args[3], f_args->args[4], f_args->args[5], f_args->args[6], f_args->args[7]);
     return (void *)STATUS_SUCCESS;
 }
 
 int probe_cmd_fcall(plist_t request, plist_t *reply)
 {
-    uint64_t addr;
-    if (!plist_array_get_int(request, 0, &addr)) {
+    struct fcall_args f_args;
+    bzero(&f_args, sizeof(f_args));
+    if (!plist_array_get_int(request, 0, &f_args.addr)) {
         return STATUS_INVALID_ARG;
     }
     plist_t args_p;
@@ -53,15 +57,11 @@ int probe_cmd_fcall(plist_t request, plist_t *reply)
     if (args_count > 8) {
         return STATUS_INVALID_ARG;
     }
-    uintptr_t args[8];
-    bzero(args, sizeof(args));
-    if (!extract_args(args_p, args, args_count)) {
+    if (!extract_args(args_p, f_args.args, args_count)) {
         return STATUS_INVALID_ARG;
     }
     pthread_t thread;
-    uintptr_t retval;
-    uintptr_t thread_args[3] = {(uintptr_t)addr, (uintptr_t)&args, (uintptr_t)&retval};
-    int err = pthread_create(&thread, NULL, (void *(*)(void *))fcall_thread, thread_args);
+    int err = pthread_create(&thread, NULL, (void *(*)(void *))fcall_thread, &f_args);
     if (err) {
         return STATUS_ERR;
     }
@@ -70,7 +70,7 @@ int probe_cmd_fcall(plist_t request, plist_t *reply)
     if (status != STATUS_SUCCESS) {
         return status;
     }
-    *reply = plist_new_uint((uint64_t)retval);
+    *reply = plist_new_uint(f_args.retval);
     return STATUS_SUCCESS;
 }
 

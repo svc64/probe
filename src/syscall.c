@@ -9,27 +9,26 @@
 
 extern int syscall(int, ...);
 
-void *safe_syscall_thread(void **args)
+struct syscall_args {
+    uint64_t num;
+    uintptr_t args[8];
+    uint64_t retval;
+};
+
+void *safe_syscall_thread(struct syscall_args *s_args)
 {
     int err = set_probe_thread();
     if (err) {
         return (void *)STATUS_ERR;
     }
-    uintptr_t *retval = (uintptr_t *)(args[0]);
-    int num = *(int *)(&args[1]);
-    void **syscall_args = (void **)(args[2]);
-    *retval = (uintptr_t)syscall(num, syscall_args[0], syscall_args[1], syscall_args[2], syscall_args[3], syscall_args[4], syscall_args[5], syscall_args[6], syscall_args[7]);
+    s_args->retval = (uintptr_t)syscall(s_args->num, s_args->args[0], s_args->args[1], s_args->args[2], s_args->args[3], s_args->args[4], s_args->args[5], s_args->args[6], s_args->args[7]);
     return (void *)STATUS_SUCCESS;
 }
 
-int probe_safe_syscall(int num, uint64_t *syscall_args, uintptr_t *retval)
+int probe_safe_syscall(struct syscall_args *s_args)
 {
     pthread_t thread;
-    void *args[3];
-    args[0] = (void *)retval;
-    args[1] = (void *)((uintptr_t)num);
-    args[2] = (void *)syscall_args;
-    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_syscall_thread, args);
+    int err = pthread_create(&thread, NULL, (void *(*)(void *))safe_syscall_thread, s_args);
     if (err) {
         return STATUS_ERR;
     }
@@ -40,8 +39,8 @@ int probe_safe_syscall(int num, uint64_t *syscall_args, uintptr_t *retval)
 
 int probe_cmd_syscall(plist_t request, plist_t *reply)
 {
-    uint64_t num;
-    if (!plist_array_get_int(request, 0, &num)) {
+    struct syscall_args s_args;
+    if (!plist_array_get_int(request, 0, &s_args.num)) {
         return STATUS_INVALID_ARG;
     }
     plist_t args_p;
@@ -52,13 +51,12 @@ int probe_cmd_syscall(plist_t request, plist_t *reply)
     if (args_count > 8) {
         return STATUS_INVALID_ARG;
     }
-    uintptr_t args[8];
-    bzero(args, 8);
-    if (!extract_args(args_p, args, args_count)) {
+    bzero(s_args.args, 8);
+    if (!extract_args(args_p, s_args.args, args_count)) {
         return STATUS_INVALID_ARG;
     }
     uintptr_t retval;
-    int status = probe_safe_syscall(num, (uint64_t *)args, &retval);
+    int status = probe_safe_syscall(&s_args);
     if (!status) {
         *reply = plist_new_uint((uint64_t)retval);
     }
