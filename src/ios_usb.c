@@ -1,3 +1,4 @@
+#ifdef IOS_RAMDISK
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOTypes.h>
@@ -5,8 +6,6 @@
 
 // (c) xerub
 // https://github.com/xerub/sshrd
-
-#ifdef IOS
 
 IOUSBDeviceDescriptionRef IOUSBDeviceDescriptionCreateWithType(CFAllocatorRef, CFStringRef);
 
