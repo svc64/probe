@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <signal.h>
+#ifdef LAUNCHD_HOOK
+#include <pthread.h>
+#endif
 #include "transport.h"
 #include "alloc.h"
 #include "mem.h"
@@ -52,11 +55,14 @@ out:
         plist_dict_set_item(reply, PLIST_KEY_PAYLOAD, reply_payload);
     }
 }
-
+#ifdef LAUNCHD_HOOK
+void probe_server()
+#else
 int main()
+#endif
 {
     int ret;
-    #ifdef IOS
+    #ifdef IOS_RAMDISK
     printf("Initializing USB...\n");
     ret = init_usb();
     if (ret) {
@@ -93,5 +99,10 @@ int main()
         probe_transport_send(ctx, reply_bin, reply_len);
         plist_mem_free(reply_bin);
     }
+    #ifndef LAUNCHD_HOOK
     return 0;
+    #else
+    return;
+    #endif
 }
+
