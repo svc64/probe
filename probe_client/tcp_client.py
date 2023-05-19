@@ -1,5 +1,4 @@
 import socket
-import struct
 from .client import ProbeClient
 from .transport import ProbeTransport
 
