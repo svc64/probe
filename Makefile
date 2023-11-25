@@ -1,15 +1,16 @@
 ARCH := arm64
 OUTPUT_DIR = output
-BUILD_DIR = build
-EXECUTABLE = $(OUTPUT_DIR)/probe
 SRC_DIR = src
 CFLAGS := -g -I$(SRC_DIR)
 LDFLAGS := -lc
 FLAVOR := vanilla
 CONF := debug
 SOURCES = $(shell find $(SRC_DIR) -type f ! -name "*.h" ! -name ".*")
-OBJS = $(SOURCES:%=$(BUILD_DIR)/%.o)
 OS = $(shell uname -s)
+BUILD_DIR = build/$(FLAVOR)/$(CONF)
+OBJS = $(SOURCES:%=$(BUILD_DIR)/%.o)
+EXECUTABLE = $(OUTPUT_DIR)/$(FLAVOR)/$(CONF)/probe
+
 
 all: $(EXECUTABLE) codesign
 
