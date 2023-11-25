@@ -10,7 +10,6 @@
 #include "mem.h"
 #include "plist.h"
 #include "syscall.h"
-#include "signals.h"
 #include "cmd.h"
 #include "arbcall.h"
 #include "ios_usb.h"
@@ -44,7 +43,7 @@ void handle_request(plist_t request, plist_t reply)
     else {
         for (int i = 0; i < sizeof(commands) / sizeof(ProbeCommand); i++) {
             if (commands[i].opcode == opcode) {
-                status = commands[i].handler(request_payload, &reply_payload);
+                status = run_handler(commands[i].handler, request_payload, &reply_payload);
                 break;
             }
         }
@@ -77,7 +76,6 @@ int main()
         abort();
     }
     // Initialize the signal handler for memory r/w operations
-    init_sig_handler();
     void* request_data = NULL;
     uint32_t request_len;
     plist_t request;

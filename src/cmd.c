@@ -1,9 +1,12 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <strings.h>
+#include <signal.h>
 #include <pthread.h>
 #include "requests.h"
+#include "plist.h"
+#include "cmd.h"
 
 #define SIGNAL_THREAD_NAME "svc.probe_thread"
 
@@ -37,9 +40,39 @@ void sighandler(int signo, siginfo_t *si, void *data)
 
 void init_sig_handler()
 {
+    static bool inited = false;
+    if (inited) {
+        return;
+    }
     struct sigaction sa, osa;
     sa.sa_flags = SA_ONSTACK | SA_RESTART | SA_SIGINFO;
     sa.sa_sigaction = sighandler;
     sigaction(SIGSEGV, &sa, &osa);
     sigaction(SIGSYS, &sa, &osa);
+    inited = true;
+}
+
+int handler_thread(void **args)
+{
+    if (set_probe_thread()) {
+        return STATUS_ERR;
+    }
+    return ((cmd_handler)args[0])((plist_t)args[1], (plist_t *)args[2]);
+}
+
+int run_handler(cmd_handler handler, plist_t request, plist_t *reply)
+{
+    init_sig_handler();
+    pthread_t thread;
+    void *args[3];
+    args[0] = (void *)handler;
+    args[1] = (void *)request;
+    args[2] = (void *)reply;
+    int err = pthread_create(&thread, NULL, (void *(*)(void *))handler_thread, args);
+    if (err) {
+        return STATUS_ERR;
+    }
+    uintptr_t retval = 0;
+    pthread_join(thread, (void **)&retval);
+    return (int)retval;
 }
